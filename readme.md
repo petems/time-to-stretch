@@ -1,6 +1,6 @@
-# Pomodoro
+# TimeToStretch
 
-Time managment tool for Windows and OS X based on [Pomodoro Technique](https://en.wikipedia.org/wiki/Pomodoro_Technique). Build with love and [electron](https://github.com/atom/electron).
+An app to remind you to stretch for Windows and OS X. Heavily based on [the electron Pomodoro](https://github.com/G07cha/pomodoro).
 
 ![Here may be screenshot](screenshot.png)
 
@@ -11,6 +11,10 @@ Time managment tool for Windows and OS X based on [Pomodoro Technique](https://e
 - Minimalistic design
 - Start/stop timer with shortcut(Ctrl + Alt + S)
 - Timer in menu bar
+
+## TO-DO
+- Examples of the stretches to do on Pop-up
+- Fade screen and full-screen when timer up
 
 ## Dev
 
@@ -24,7 +28,8 @@ npm install
 npm start
 ```
 
-
 ## License
 
 MIT © [Konstantin Azizov](http://g07cha.github.io)
+
+Heavily based on the work by [Konstantin Azizov](http://g07cha.github.io)

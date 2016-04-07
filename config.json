@@ -1,6 +1,6 @@
 {
 	"osx" : {
-		"title": "Pomodoro",
+		"title": "TimeToStretch",
 		"background": "src/img/background.png",
 		"icon": "icon.icns",
 		"icon-size": 80,
@@ -10,7 +10,7 @@
 		]
 	},
 	"win" : {
-		"title": "Pomodoro",
+		"title": "TimeToStretch",
 		"icon": "icon.ico"
 	}
 }

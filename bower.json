@@ -1,12 +1,12 @@
 {
-  "name": "pomodoro",
+  "name": "TimeToStretch",
   "description": "Pomodoro timer build with electron",
   "main": "index.js",
   "authors": [
-    "g07cha"
+    "petems"
   ],
   "license": "MIT",
-  "homepage": "https://github.com/G07cha/pomodoro",
+  "homepage": "https://github.com/petems/TimeToStretch",
   "moduleType": [],
   "private": true,
   "ignore": [
