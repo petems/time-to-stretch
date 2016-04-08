@@ -30,6 +30,6 @@ npm start
 
 ## License
 
-MIT © [Konstantin Azizov](http://g07cha.github.io)
+MIT © [Peter Souter](http://github.com/petems)
 
 Heavily based on the work by [Konstantin Azizov](http://g07cha.github.io)
