@@ -1,4 +1,4 @@
-# TimeToStretch
+# time-to-stretch
 
 An app to remind you to stretch for Windows and OS X. Heavily based on [the electron Pomodoro](https://github.com/G07cha/pomodoro).
 

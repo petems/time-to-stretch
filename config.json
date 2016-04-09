@@ -1,6 +1,6 @@
 {
 	"osx" : {
-		"title": "TimeToStretch",
+		"title": "time-to-stretch",
 		"background": "src/img/background.png",
 		"icon": "icon.icns",
 		"icon-size": 80,
@@ -10,7 +10,7 @@
 		]
 	},
 	"win" : {
-		"title": "TimeToStretch",
+		"title": "time-to-stretch",
 		"icon": "icon.ico"
 	}
 }
