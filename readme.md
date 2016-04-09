@@ -19,7 +19,9 @@ An app to remind you to stretch for Windows and OS X. Heavily based on [the elec
 ## Dev
 
 ```
+npm install -g bower
 npm install
+bower install
 ```
 
 ### Run
