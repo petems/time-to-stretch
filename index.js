@@ -7,8 +7,10 @@ const dialog = require('dialog');
 const Stopwatch = require('timer-stopwatch');
 const Hrt = require('human-readable-time');
 const fs = require('fs');
+
 const path = require('path');
 const AutoLaunch = require('auto-launch');
+const browserWindow = require('browser-window');
 
 // report crashes to the Electron project
 require('crash-reporter').start();
@@ -21,7 +23,10 @@ let pomodoroCount = 0;
 let isRelaxTime = false;
 let showTimer = true;
 let launchOnStartup = false;
+var useCustomAlert = false;
+var customAlertFilePath = 'stretches.html';
 let sender;
+let debug = false;
 
 let mb = menubar({
 	'preloadWindow': true
@@ -38,14 +43,52 @@ if(process.platform === 'darwin') {
 
 let autolauncher = new AutoLaunch(options);
 
-getConfig();
-
-global.timer = new Stopwatch(workTimer);
-global.isRelaxTime = isRelaxTime;
-
 process.on('uncaughtException', (err) => {
 	dialog.showErrorBox('Uncaught Exception: ' + err.message, err.stack || '');
 	mb.app.quit();
+});
+
+mb.app.on('ready', () => {
+	mb.ready = true;
+	debug && mb.window.webContents.openDevTools();
+	getConfig();
+
+	global.timer = new Stopwatch(workTimer);
+	global.isRelaxTime = isRelaxTime;
+
+	global.timer.on('time', function(time) {
+		if(showTimer) {
+	        if (time.ms !== workTimer
+		       || time.ms !== relaxTimer
+		       || time.ms !== longRelaxTimer) {
+			  mb.tray.setTitle(timeFormat(new Date(time.ms)));
+	        }
+		} else {
+	        mb.tray.setTitle('');
+	    }
+		global.progress = getProgress();
+		sender && sender.send('update-timer');
+	});
+
+	global.timer.on('done', function() {
+		sender.send('end-timer');
+		if(isRelaxTime) {
+			global.timer.reset(workTimer);
+			isRelaxTime = false;
+		} else {
+			pomodoroCount++;
+			if(pomodoroCount % 4 === 0) {
+				global.timer.reset(longRelaxTimer);
+			} else {
+				global.timer.reset(relaxTimer);
+			}
+			
+			isRelaxTime = true;
+		}
+		
+		global.isRelaxTime = isRelaxTime;
+		global.pomodoroCount = pomodoroCount;
+	});
 });
 
 mb.app.on('will-quit', () => {
@@ -57,46 +100,14 @@ mb.app.on('quit', () => {
 	mb = null;
 });
 
-global.timer.on('time', function(time) {
-	if(showTimer) {
-        if (time.ms !== workTimer
-	       || time.ms !== relaxTimer
-	       || time.ms !== longRelaxTimer) {
-		  mb.tray.setTitle(timeFormat(new Date(time.ms)));
-        }
-	} else {
-        mb.tray.setTitle('');
-    }
-	global.progress = getProgress();
-	sender.send('update-timer');
-});
-
-global.timer.on('done', function() {
-	sender.send('end-timer');
-	if(isRelaxTime) {
-		global.timer.reset(workTimer);
-		isRelaxTime = false;
-	} else {
-		pomodoroCount++;
-		if(pomodoroCount % 4 === 0) {
-			global.timer.reset(longRelaxTimer);
-		} else {
-			global.timer.reset(relaxTimer);
-		}
-		
-		isRelaxTime = true;
-	}
-	
-	global.isRelaxTime = isRelaxTime;
-	global.pomodoroCount = pomodoroCount;
-});
-
 ipc.on('reset-timer', function(event) {
 	global.timer.reset(workTimer);
 	mb.tray.setTitle('');
 	global.progress = getProgress();
 	
 	event.sender.send('update-timer', 0);
+	if (useCustomAlert)
+		hideAlertWindow();
 });
 
 ipc.on('start-timer', function(event) {
@@ -128,7 +139,9 @@ ipc.on('request-config', function(event) {
 		relaxTimer: relaxTimer / 60 / 1000, 
 		longRelaxTimer: longRelaxTimer / 60 / 1000,
         showTimer: showTimer,
-		launchOnStartup: launchOnStartup
+		launchOnStartup: launchOnStartup,
+		useCustomAlert: useCustomAlert,
+		customAlertFilePath: customAlertFilePath
 	};
 });
 
@@ -145,6 +158,8 @@ function getConfig() {
 		longRelaxTimer = data.longRelaxTimer * 60 * 1000;
         showTimer = data.showTimer;
 		launchOnStartup = data.launchOnStartup;
+		useCustomAlert = data.useCustomAlert || useCustomAlert;
+		customAlertFilePath = data.customAlertFilePath || customAlertFilePath;
 		if(launchOnStartup) {
 			autolauncher.enable();
 		} else {
@@ -152,8 +167,10 @@ function getConfig() {
 		}
 	} catch(err) {
 		console.log(err);
-		console.log('Didn\'t found previous config. Using default settings');
+		console.log('Didn\'t find previous config. Using default settings');
 	}
+
+	global.useCustomAlert = useCustomAlert;
 }
 
 function getProgress() {
@@ -175,4 +192,57 @@ function getProgress() {
 		progress = 0.01;
 	}
 	return progress;
+}
+
+
+ipc.on('show-alert-window', () => {
+	let win = createCustomWindow(customAlertFilePath);
+	win.webContents.on("did-finish-load", () => {
+		showMaximizedWindow(win);
+		
+	});
+	global.alertWindow = win;
+});
+
+function hideAlertWindow() {
+	if (global.alertWindow) {
+		global.alertWindow.close();
+		global.alertWindow = null;
+	}
+}
+ipc.on('hide-alert-window', hideAlertWindow);
+
+ipc.on('test-alert-window', (event, arg) => {
+	if (!arg) {
+		return;
+	}
+
+	let win = createCustomWindow(arg.file);
+	win.webContents.on("did-finish-load", () => {
+		showMaximizedWindow(win);
+		setTimeout(() => {
+			win.close();
+		}, arg.timeout);
+	});
+});
+
+function createCustomWindow(templateName) {
+	var win = new browserWindow({
+		width: 800,
+		height: 600,
+		frame: false,
+		show: false
+	});
+	win.loadUrl('file://' + __dirname + '/templates/' + templateName);
+	win.on('blur', () => {
+		win.setAlwaysOnTop(false);
+	});
+	debug && win.webContents.openDevTools();
+	return win;
+}
+
+function showMaximizedWindow(win) {
+	win.setAlwaysOnTop(true);
+	win.maximize();
+	win.show();
 }
