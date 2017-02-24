@@ -22,6 +22,10 @@ input.launch {
 	bottom: 0;
 }
 
+.btnForm {
+	-webkit-app-region: no-drag;
+}
+
 .btn.cancel {
 	right: 0;
 }
