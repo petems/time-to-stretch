@@ -26,7 +26,7 @@
   "dependencies": {
     "auto-launch": "^0.1.19",
     "human-readable-time": "^0.2.0",
-    "jquery": "^2.1.4",
+    "jquery": "^3.0.0",
     "menubar": "^2.2.1",
     "timer-stopwatch": "^0.1.6"
   },
